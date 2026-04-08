@@ -20,6 +20,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // EMERGENCY BYPASS CHECK
+      if (localStorage.getItem('aetherforge_bypass') === 'true') {
+        setProfile({
+          name: 'DEVELOPMENT USER',
+          goal: 'Fat Loss',
+          level: 'Advanced'
+        })
+        setLoading(false)
+        return
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/membership')

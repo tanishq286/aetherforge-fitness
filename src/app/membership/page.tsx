@@ -138,6 +138,11 @@ export default function MembershipPage() {
     }
   }
 
+  const handleDevBypass = () => {
+    localStorage.setItem('aetherforge_bypass', 'true')
+    router.push('/dashboard')
+  }
+
   return (
     <main className="min-h-screen pt-32 pb-20 px-6">
       <Navbar />
@@ -211,7 +216,18 @@ export default function MembershipPage() {
                 </div>
               </div>
 
-              {error && <p className="text-accent text-sm font-medium">{error}</p>}
+              {error && (
+                <div className="space-y-4">
+                  <p className="text-accent text-sm font-medium p-3 bg-accent/5 border border-accent/20">{error}</p>
+                  <button
+                    type="button"
+                    onClick={handleDevBypass}
+                    className="w-full py-2 border border-accent/30 text-accent font-heading text-[10px] uppercase tracking-[0.2em] hover:bg-accent/10 transition-all font-black"
+                  >
+                    ⚡ EMERGENCY BYPASS (SKIP AUTH)
+                  </button>
+                </div>
+              )}
 
               <Button 
                 type="submit" 
