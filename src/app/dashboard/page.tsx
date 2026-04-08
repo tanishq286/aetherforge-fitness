@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 
@@ -12,37 +13,30 @@ interface Profile {
   level: string
 }
 
+interface WorkoutLog {
+  id: string
+  created_at: string
+  user_id: string
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
 
-  const [workouts, setWorkouts] = useState<any[]>([])
+  const [workouts, setWorkouts] = useState<WorkoutLog[]>([])
   const [streak, setStreak] = useState(0)
 
-  const fetchWorkouts = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('workout_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (!error && data) {
-      setWorkouts(data)
-      calculateStreak(data)
-    }
-  }
-
-  const calculateStreak = (logs: any[]) => {
+  const calculateStreak = React.useCallback((logs: WorkoutLog[]) => {
     if (logs.length === 0) return setStreak(0)
     
     const dates = logs.map(log => new Date(log.created_at).toDateString())
     const uniqueDates = Array.from(new Set(dates))
     
     let currentStreak = 0
-    let today = new Date()
-    let checkDate = new Date(today)
+    const today = new Date()
+    const checkDate = new Date(today)
 
     // If no workout today, check yesterday
     if (!uniqueDates.includes(today.toDateString())) {
@@ -58,7 +52,20 @@ export default function DashboardPage() {
       }
     }
     setStreak(currentStreak)
-  }
+  }, [])
+
+  const fetchWorkouts = React.useCallback(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('workout_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (!error && data) {
+      setWorkouts(data)
+      calculateStreak(data)
+    }
+  }, [calculateStreak])
 
   const deleteWorkout = async (id: string) => {
     const { error } = await supabase.from('workout_logs').delete().eq('id', id)
@@ -128,7 +135,7 @@ export default function DashboardPage() {
     }
 
     fetchProfile()
-  }, [router])
+  }, [router, fetchWorkouts])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -136,7 +143,7 @@ export default function DashboardPage() {
   }
 
   const getGoalMessage = () => {
-    const goal = profile?.goal?.toLowerCase().replace(' ', '_')
+    const goal = profile?.goal?.toLowerCase().replace(/\s+/g, '_')
     if (goal === 'fat_loss') {
       return "🔥 CUTTING PHASE — Stay in deficit. Every rep counts."
     }

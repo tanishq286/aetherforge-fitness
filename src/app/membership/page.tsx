@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 
@@ -13,7 +14,7 @@ export default function MembershipPage() {
   const [activeTab, setActiveTab] = useState<Tab>('join')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [showProfileForm, setShowProfileForm] = useState(false)
 
   // Form State
@@ -62,7 +63,7 @@ export default function MembershipPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) return
+    if (!validateAuth(email, password)) return
     
     setLoading(true)
     setError(null)
@@ -103,8 +104,8 @@ export default function MembershipPage() {
           router.push('/dashboard')
         }
       }
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
@@ -140,8 +141,8 @@ export default function MembershipPage() {
 
       if (error) throw error
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
