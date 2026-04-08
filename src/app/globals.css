@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #080808;
+  --color-accent: #FF4D00;
+  --color-text-primary: #e8e8e2;
+  --color-muted: #666;
+  --color-border-primary: #161616;
+  --font-heading: "Barlow Condensed", sans-serif;
+  --font-body: "Barlow", sans-serif;
+}
+
+:root {
+  --background: #080808;
+  --foreground: #e8e8e2;
+}
+
+* {
+  border-color: #161616;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-image: linear-gradient(#131313 1px, transparent 1px), 
+                    linear-gradient(90deg, #131313 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+}
+
+.parallelogram-clip {
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+@layer utilities {
+  .text-muted {
+    color: #666;
+  }
+}
