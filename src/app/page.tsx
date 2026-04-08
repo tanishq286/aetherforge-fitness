@@ -29,7 +29,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-6">
             <Link href="/membership">
-              <Button>Initalize Access</Button>
+              <Button>GET STARTED</Button>
             </Link>
             <Button variant="outline">View Facility</Button>
           </div>

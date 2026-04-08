@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable}`}>
-      <body className="antialiased">
+      <body className={`${barlow.className} ${barlowCondensed.className} antialiased bg-[#080808] text-[#e8e8e2]`}>
         {children}
       </body>
     </html>
