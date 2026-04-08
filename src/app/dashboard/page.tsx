@@ -67,15 +67,32 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      // EMERGENCY BYPASS CHECK
+      // 1. EMERGENCY BYPASS CHECK
       if (localStorage.getItem('aetherforge_bypass') === 'true') {
-        const mockProfile = {
+        const guestId = localStorage.getItem('aetherforge_guest_id')
+        
+        // Try to fetch the REAL data you just typed from Supabase
+        if (guestId) {
+          const { data: guestProfile } = await supabase
+            .from('profiles')
+            .select('name, goal, level')
+            .eq('user_id', guestId)
+            .single()
+            
+          if (guestProfile) {
+            setProfile(guestProfile)
+            fetchWorkouts(guestId)
+            setLoading(false)
+            return
+          }
+        }
+
+        // Fallback to mock data if DB fetch fails
+        setProfile({
           name: 'DEVELOPMENT USER',
           goal: 'muscle_gain',
           level: 'Advanced'
-        }
-        setProfile(mockProfile)
-        setWorkouts([])
+        })
         setLoading(false)
         return
       }

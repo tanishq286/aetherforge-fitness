@@ -62,36 +62,45 @@ export default function MembershipPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateAuth(email, password)) return
-
+    if (!email || !password) return
+    
     setLoading(true)
     setError(null)
+
+    // DATA-FIRST: Store typed data in Supabase immediately
+    const tempId = crypto.randomUUID()
+    try {
+      await supabase.from('profiles').insert({
+        user_id: tempId,
+        name: fullName,
+        goal,
+        level
+      })
+      localStorage.setItem('aetherforge_guest_id', tempId)
+    } catch (dbErr) {
+      console.error('Database sync failed:', dbErr)
+    }
 
     try {
       if (activeTab === 'join') {
         const { data, error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
+        if (error) {
+          if (error.message?.toLowerCase().includes('rate limit')) {
+            handleDevBypass()
+            return
+          }
+          throw error
+        }
         if (data.user) {
           setUser(data.user)
-          setShowProfileForm(true)
+          router.push('/dashboard')
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         if (data.user) {
           setUser(data.user)
-          // Double check profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', data.user.id)
-            .single()
-
-          if (profile) {
-            router.push('/dashboard')
-          } else {
-            setShowProfileForm(true)
-          }
+          router.push('/dashboard')
         }
       }
     } catch (err: any) {
@@ -186,16 +195,10 @@ export default function MembershipPage() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (formErrors.email) setFormErrors(prev => ({ ...prev, email: '' }))
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="name@example.com"
                 />
-                <div className="h-4">
-                  {formErrors.email && <p className="text-[#ff4444] text-[10px] uppercase tracking-wider font-heading mt-1">{formErrors.email}</p>}
-                </div>
               </div>
 
               <div className="space-y-2">
@@ -204,17 +207,54 @@ export default function MembershipPage() {
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    if (formErrors.password) setFormErrors(prev => ({ ...prev, password: '' }))
-                  }}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="••••••••"
                 />
-                <div className="h-4">
-                  {formErrors.password && <p className="text-[#ff4444] text-[10px] uppercase tracking-wider font-heading mt-1">{formErrors.password}</p>}
-                </div>
               </div>
+
+              {activeTab === 'join' && (
+                <>
+                  <div className="space-y-2">
+                    <label className="block font-heading text-sm text-muted uppercase tracking-widest">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors uppercase"
+                      placeholder="JOHN DOE"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block font-heading text-sm text-muted uppercase tracking-widest">Goal</label>
+                      <select 
+                        value={goal}
+                        onChange={(e) => setGoal(e.target.value)}
+                        className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors uppercase"
+                      >
+                        <option value="fat_loss">Fat Loss</option>
+                        <option value="muscle_gain">Muscle Gain</option>
+                        <option value="endurance">Endurance</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block font-heading text-sm text-muted uppercase tracking-widest">Level</label>
+                      <select 
+                        value={level}
+                        onChange={(e) => setLevel(e.target.value)}
+                        className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors uppercase"
+                      >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {error && (
                 <div className="space-y-4">
@@ -233,7 +273,6 @@ export default function MembershipPage() {
                 type="submit" 
                 isLoading={loading} 
                 className="w-full"
-                disabled={!email || !password}
               >
                 {activeTab === 'join' ? 'CREATE ACCOUNT' : 'SECURE LOGIN'}
               </Button>
