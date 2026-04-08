@@ -48,21 +48,21 @@ export default function MembershipPage() {
     checkUser()
   }, [router])
 
-  const validateAuth = () => {
+  const validateAuth = (emailVal: string, passwordVal: string) => {
     const errors: Record<string, string> = {}
-    if (!email.includes('@') || !email.includes('.')) {
-      errors.email = 'Please enter a valid email address (must contain @ and .)'
+    if (emailVal && (!emailVal.includes('@') || !emailVal.includes('.'))) {
+      errors.email = 'Email must contain @ and .'
     }
-    if (activeTab === 'join' && password.length < 8) {
-      errors.password = 'Password must be at least 8 characters long'
+    if (activeTab === 'join' && passwordVal && passwordVal.length < 8) {
+      errors.password = 'Password must be at least 8 characters'
     }
     setFormErrors(errors)
-    return Object.keys(errors).length === 0
+    return Object.keys(errors).length === 0 && emailVal.length > 0 && passwordVal.length > 0
   }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateAuth()) return
+    if (!validateAuth(email, password)) return
 
     setLoading(true)
     setError(null)
@@ -101,20 +101,18 @@ export default function MembershipPage() {
     }
   }
 
-  const validateProfile = () => {
+  const validateProfile = (nameVal: string) => {
     const errors: Record<string, string> = {}
-    if (fullName.trim().length < 2) {
-      errors.fullName = 'Full Name is required and must be at least 2 characters'
+    if (nameVal && nameVal.trim().length < 2) {
+      errors.fullName = 'Name must be at least 2 characters'
     }
-    if (!goal) errors.goal = 'Please select your fitness goal'
-    if (!level) errors.level = 'Please select your experience level'
     setFormErrors(errors)
-    return Object.keys(errors).length === 0
+    return Object.keys(errors).length === 0 && nameVal.trim().length >= 2
   }
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateProfile()) return
+    if (!validateProfile(fullName)) return
 
     setLoading(true)
     setError(null)
@@ -190,7 +188,9 @@ export default function MembershipPage() {
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="name@example.com"
                 />
-                {formErrors.email && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.email}</p>}
+                <div className="h-4">
+                  {formErrors.email && <p className="text-[#ff4444] text-[10px] uppercase tracking-wider font-heading mt-1">{formErrors.email}</p>}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -206,7 +206,9 @@ export default function MembershipPage() {
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="••••••••"
                 />
-                {formErrors.password && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.password}</p>}
+                <div className="h-4">
+                  {formErrors.password && <p className="text-[#ff4444] text-[10px] uppercase tracking-wider font-heading mt-1">{formErrors.password}</p>}
+                </div>
               </div>
 
               {error && <p className="text-accent text-sm font-medium">{error}</p>}
@@ -238,7 +240,9 @@ export default function MembershipPage() {
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="John Doe"
                 />
-                {formErrors.fullName && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.fullName}</p>}
+                <div className="h-4">
+                  {formErrors.fullName && <p className="text-[#ff4444] text-[10px] uppercase tracking-wider font-heading mt-1">{formErrors.fullName}</p>}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

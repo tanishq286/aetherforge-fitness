@@ -27,19 +27,26 @@ export default function DashboardPage() {
       }
       setUser(user)
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('name, goal, level')
-        .eq('user_id', user.id)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('name, goal, level')
+          .eq('user_id', user.id)
+          .single()
 
-      if (error || !data) {
+        if (error || !data) {
+          console.warn('Profile sync issue:', error)
+          router.push('/membership')
+          return
+        }
+
+        setProfile(data)
+      } catch (err) {
+        console.error('Critical dashboard error:', err)
         router.push('/membership')
-        return
+      } finally {
+        setLoading(false)
       }
-
-      setProfile(data)
-      setLoading(false)
     }
 
     fetchProfile()
