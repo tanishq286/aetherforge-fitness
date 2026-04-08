@@ -16,14 +16,15 @@ export default function MembershipPage() {
   const [user, setUser] = useState<any>(null)
   const [showProfileForm, setShowProfileForm] = useState(false)
 
-  // Auth Form State
+  // Form State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  // Profile Form State
   const [fullName, setFullName] = useState('')
   const [goal, setGoal] = useState('Muscle Gain')
   const [level, setLevel] = useState('Beginner')
+
+  // Validation State
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const checkUser = async () => {
@@ -47,8 +48,22 @@ export default function MembershipPage() {
     checkUser()
   }, [router])
 
+  const validateAuth = () => {
+    const errors: Record<string, string> = {}
+    if (!email.includes('@') || !email.includes('.')) {
+      errors.email = 'Please enter a valid email address (must contain @ and .)'
+    }
+    if (activeTab === 'join' && password.length < 8) {
+      errors.password = 'Password must be at least 8 characters long'
+    }
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validateAuth()) return
+
     setLoading(true)
     setError(null)
 
@@ -86,8 +101,21 @@ export default function MembershipPage() {
     }
   }
 
+  const validateProfile = () => {
+    const errors: Record<string, string> = {}
+    if (fullName.trim().length < 2) {
+      errors.fullName = 'Full Name is required and must be at least 2 characters'
+    }
+    if (!goal) errors.goal = 'Please select your fitness goal'
+    if (!level) errors.level = 'Please select your experience level'
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validateProfile()) return
+
     setLoading(true)
     setError(null)
 
@@ -155,10 +183,14 @@ export default function MembershipPage() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (formErrors.email) setFormErrors(prev => ({ ...prev, email: '' }))
+                  }}
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="name@example.com"
                 />
+                {formErrors.email && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -167,15 +199,24 @@ export default function MembershipPage() {
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (formErrors.password) setFormErrors(prev => ({ ...prev, password: '' }))
+                  }}
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="••••••••"
                 />
+                {formErrors.password && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.password}</p>}
               </div>
 
               {error && <p className="text-accent text-sm font-medium">{error}</p>}
 
-              <Button type="submit" isLoading={loading} className="w-full">
+              <Button 
+                type="submit" 
+                isLoading={loading} 
+                className="w-full"
+                disabled={!email || !password}
+              >
                 {activeTab === 'join' ? 'CREATE ACCOUNT' : 'SECURE LOGIN'}
               </Button>
             </form>
@@ -190,10 +231,14 @@ export default function MembershipPage() {
                   type="text"
                   required
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value)
+                    if (formErrors.fullName) setFormErrors(prev => ({ ...prev, fullName: '' }))
+                  }}
                   className="w-full bg-[#111] border border-[#222] p-4 text-white focus:outline-none focus:border-accent transition-colors"
                   placeholder="John Doe"
                 />
+                {formErrors.fullName && <p className="text-[#ff4444] text-xs uppercase tracking-wider font-heading mt-1">{formErrors.fullName}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -225,7 +270,12 @@ export default function MembershipPage() {
 
               {error && <p className="text-accent text-sm font-medium">{error}</p>}
 
-              <Button type="submit" isLoading={loading} className="w-full">
+              <Button 
+                type="submit" 
+                isLoading={loading} 
+                className="w-full"
+                disabled={!fullName || !goal || !level}
+              >
                 ACTIVATE MEMBERSHIP
               </Button>
             </form>
